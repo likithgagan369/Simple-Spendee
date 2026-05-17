@@ -1,0 +1,45 @@
+name: smart_expense_tracker
+description: A crazy-colored smart expense tracker app
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.1
+  shared_preferences: ^2.2.2
+  fl_chart: ^0.66.2
+  intl: ^0.18.1
+  uuid: ^4.3.3
+  flutter_slidable: ^3.0.1
+  lottie: ^3.1.0
+  google_fonts: ^6.1.0
+  curved_navigation_bar: ^1.0.3
+  flutter_staggered_animations: ^1.1.1
+  animate_do: ^3.3.4
+  percent_indicator: ^4.2.3
+  iconsax: ^0.0.8
+  gap: ^3.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icons/app_icon.png"
+  min_sdk_android: 21
+  web:
+    generate: false
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icons/
+    - assets/images/

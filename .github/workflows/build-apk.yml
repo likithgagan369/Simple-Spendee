@@ -1,0 +1,121 @@
+name: 🚀 Build & Release APK
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Manual trigger button in GitHub
+
+jobs:
+  build:
+    name: Build Flutter APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🐦 Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+          cache: true
+
+      - name: 📦 Get Dependencies
+        run: flutter pub get
+
+      - name: 🔍 Analyze Code
+        run: flutter analyze --no-fatal-infos
+        continue-on-error: true
+
+      - name: 🧪 Run Tests
+        run: flutter test
+        continue-on-error: true
+
+      - name: 🔨 Build Debug APK
+        run: flutter build apk --debug
+
+      - name: 🔨 Build Release APK
+        run: flutter build apk --release
+
+      - name: 📤 Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: spendix-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 30
+
+      - name: 📤 Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: spendix-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🐦 Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+          cache: true
+
+      - name: 📦 Get Dependencies
+        run: flutter pub get
+
+      - name: 🔨 Build Release APK
+        run: flutter build apk --release
+
+      - name: 📋 Get Tag Name
+        id: tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: 🎉 Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: "Spendix ${{ steps.tag.outputs.tag }}"
+          body: |
+            ## 💸 Spendix ${{ steps.tag.outputs.tag }}
+            
+            ### 📱 Download & Install
+            1. Download `spendix-release.apk` below
+            2. On your Android device: **Settings → Install Unknown Apps** → Allow
+            3. Open the downloaded APK and install
+            
+            ### What's in this release
+            - Smart expense tracking with 9 categories
+            - Weekly bar chart visualization
+            - Monthly budget tracking
+            - Category breakdown analytics
+            - Crazy neon UI theme 🌈
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
